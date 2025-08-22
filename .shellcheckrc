@@ -1,0 +1,11 @@
+# ShellCheck設定ファイル
+# https://www.shellcheck.net/wiki/Ignore
+
+# グローバル設定
+disable=SC2034  # 未使用変数の警告を無効化（テスト用変数など）
+
+# 特定のシェルを指定
+shell=bash
+
+# 外部ソースを許可
+external-sources=true
