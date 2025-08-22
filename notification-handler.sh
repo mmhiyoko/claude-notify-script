@@ -104,16 +104,12 @@ for notifier in "$NOTIFIERS_DIR"/*.sh; do
     any_executed=true
     
     # 各通知スクリプトにJSONを渡して実行
-    set +e  # 一時的にエラーで止まらないようにする
-    echo "$input" | "$notifier" 2>&1
-    exit_code=$?
-    set -e  # 元に戻す
-    
-    if [[ $exit_code -eq 0 ]]; then
+    # || true を使ってエラーでも継続
+    if echo "$input" | "$notifier" 2>&1; then
         log_message "成功: $notifier_name"
         any_succeeded=true
     else
-        log_message "失敗: $notifier_name (exit: $exit_code)"
+        log_message "失敗: $notifier_name (exit: $?)"
     fi
 done
 
