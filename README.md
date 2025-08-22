@@ -28,6 +28,42 @@ claude-notify-script/
 └── .shellcheckrc               # ShellCheck設定
 ```
 
+## 📦 必要な環境
+
+### 実行に必要なもの（必須）
+
+- **bash** (v4.0以上) - 通常はプリインストール済み
+- **curl** - HTTP通信用（Slack等への通知送信）
+- **基本的なUnixツール** - sed, awk, grep等
+
+### JSON処理（強く推奨）
+
+```bash
+# macOS/Linux (Homebrew)
+brew install jq
+
+# Ubuntu/Debian
+apt-get install jq
+
+# 手動インストール
+# https://stedolan.github.io/jq/download/
+```
+
+jqがない場合も基本的な動作はしますが、JSON解析が制限されます。
+
+### 開発に必要なもの（オプション）
+
+```bash
+# テストフレームワーク
+brew install bats-core  # または npm install -g bats
+
+# 静的解析ツール
+brew install shellcheck
+
+# GitHub Actions検証
+brew install actionlint
+```
+
 ## 🚀 クイックスタート
 
 ### 1. インストール
@@ -37,8 +73,9 @@ claude-notify-script/
 git clone https://github.com/mmhiyoko/claude-notify-script.git
 cd claude-notify-script
 
-# 必要なツールのインストール（オプション）
-brew install bats-core shellcheck jq
+# 実行権限の付与
+chmod +x notification-handler.sh
+chmod +x notifiers-examples/*.sh
 ```
 
 ### 2. Claude Code設定
@@ -176,9 +213,21 @@ else
 fi
 ```
 
-## 🧪 テスト
+## 🧪 開発者向け情報
 
-### 自動テスト（Bats）
+### 依存関係のインストール
+
+```bash
+# macOS/Linux (Homebrew)
+brew install bats-core shellcheck actionlint jq
+
+# Ubuntu/Debian
+apt-get update
+apt-get install -y bats shellcheck jq curl
+# actionlintは手動インストールが必要
+```
+
+### テスト実行
 
 ```bash
 # すべてのテストを実行
