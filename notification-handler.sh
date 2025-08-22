@@ -74,7 +74,7 @@ input=$(cat)
 log_message "受信データ: $input"
 
 # テストモードの確認
-if [[ "$CLAUDE_TEST_MODE" == "true" ]] || [[ "$TEST_MODE" == "true" ]]; then
+if [[ "${CLAUDE_TEST_MODE:-}" == "true" ]] || [[ "${TEST_MODE:-}" == "true" ]]; then
     echo "🧪 テストモード: 通知スキップ" >&2
     log_message "通知完了: 0 個実行, 0 個失敗 (テストモード)"
     exit 0
