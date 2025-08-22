@@ -34,9 +34,10 @@ claude-notify-script/
 
 - **bash** (v4.0以上) - 通常はプリインストール済み
 - **curl** - HTTP通信用（Slack等への通知送信）
-- **基本的なUnixツール** - sed, awk, grep等
+- **jq** - JSON処理用（必須）
+- **sed** - macOS通知用スクリプトで使用（オプション）
 
-### JSON処理（強く推奨）
+### jqのインストール
 
 ```bash
 # macOS/Linux (Homebrew)
@@ -48,8 +49,6 @@ apt-get install jq
 # 手動インストール
 # https://stedolan.github.io/jq/download/
 ```
-
-jqがない場合も基本的な動作はしますが、JSON解析が制限されます。
 
 ### 開発に必要なもの（オプション）
 

@@ -42,22 +42,21 @@ fi
 # JSON入力を受信
 input=$(cat)
 
-# JSONからデータを抽出
-if command -v jq &> /dev/null; then
-    message=$(echo "$input" | jq -r '.message // ""')
-    event=$(echo "$input" | jq -r '.hook_event_name // "unknown"')
-    session_id=$(echo "$input" | jq -r '.session_id // ""')
-    cwd=$(echo "$input" | jq -r '.cwd // ""')
-    
-    # プロジェクト名を抽出（cwdの最後のディレクトリ名）
-    project_name=$(basename "$cwd")
-else
-    message="Claude Code通知"
-    event="unknown"
-    session_id=""
-    cwd=""
-    project_name=""
+# jqの必須チェック
+if ! command -v jq &> /dev/null; then
+    echo "❌ エラー: jqがインストールされていません" >&2
+    echo "  インストール方法: brew install jq または apt-get install jq" >&2
+    exit 1
 fi
+
+# JSONからデータを抽出
+message=$(echo "$input" | jq -r '.message // ""')
+event=$(echo "$input" | jq -r '.hook_event_name // "unknown"')
+session_id=$(echo "$input" | jq -r '.session_id // ""')
+cwd=$(echo "$input" | jq -r '.cwd // ""')
+
+# プロジェクト名を抽出（cwdの最後のディレクトリ名）
+project_name=$(basename "$cwd")
 
 # イベントタイプに応じた絵文字とタイトル
 case "$event" in

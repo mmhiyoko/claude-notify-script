@@ -55,6 +55,13 @@ log_message() {
 # ハンドラー開始ログ
 log_message "notification-handler: 通知ハンドラー開始"
 
+# jqの必須チェック
+if ! command -v jq &> /dev/null; then
+    echo "❌ エラー: jqがインストールされていません" >&2
+    echo "  インストール方法: brew install jq または apt-get install jq" >&2
+    exit 1
+fi
+
 # JSON入力を受信
 input=$(cat)
 
