@@ -44,7 +44,7 @@ jobs:
       run: |
         export CLAUDE_TEST_MODE=true
         for file in notification-examples/*.json; do
-          echo "Testing: $(basename $file)"
+          echo "Testing: $(basename "$file")"
           cat "$file" | ./notification-handler.sh
         done
         

@@ -212,6 +212,23 @@ shellcheck notification-handler.sh
 shellcheck *.sh notifiers/*.sh
 ```
 
+### Pre-pushフックの設定
+
+プッシュ前に自動でテストとlintを実行するフックが含まれています：
+
+```bash
+# Gitフックディレクトリを設定
+git config core.hooksPath .githooks
+
+# フックが動作することを確認
+.githooks/pre-push
+```
+
+フックは以下を実行します：
+- actionlint: GitHub Actionsワークフローの検証
+- bats: テストスイートの実行
+- shellcheck: シェルスクリプトの静的解析
+
 ## 🔍 トラブルシューティング
 
 ### 通知が届かない

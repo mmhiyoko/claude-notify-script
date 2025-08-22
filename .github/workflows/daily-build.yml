@@ -44,7 +44,7 @@ jobs:
         
         echo "=== Testing all examples ==="
         for file in notification-examples/*.json; do
-          echo "Testing: $(basename $file)"
+          echo "Testing: $(basename "$file")"
           cat "$file" | ./notification-handler.sh
         done
         
@@ -89,7 +89,7 @@ jobs:
         echo "Test Results:"
         echo "- ShellCheck: $(find . -name "*.sh" -type f | wc -l) files checked"
         echo "- Bats tests: $(grep -c "@test" test/*.bats) tests"
-        echo "- Examples: $(ls notification-examples/*.json | wc -l) files"
+        echo "- Examples: $(find notification-examples -name "*.json" -type f | wc -l) files"
         
     - name: Create issue on failure
       if: failure()
