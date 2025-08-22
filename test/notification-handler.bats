@@ -86,17 +86,13 @@ setup() {
 @test "デバッグログ記録（DEBUG_MODE=true）" {
     export DEBUG_MODE="true"
     export CLAUDE_TEST_MODE="true"
-    DEBUG_LOG="/tmp/claude-notification-debug.log"
     
-    # ログファイルをクリア
-    > "$DEBUG_LOG"
-    
-    run bash -c "echo '{\"message\":\"デバッグテスト\"}' | bash '$HANDLER_SCRIPT' 2>&1"
+    # DEBUG_MODEでは標準エラー出力にログが出力される
+    run bash -c "echo '{\"message\":\"デバッグテスト\"}' | DEBUG_MODE=true CLAUDE_TEST_MODE=true bash '$HANDLER_SCRIPT' 2>&1"
     [ "$status" -eq 0 ]
     
-    # ログファイルが存在し、内容が記録されているか確認
-    [ -f "$DEBUG_LOG" ]
-    grep -q "notification-handler" "$DEBUG_LOG"
+    # 標準エラー出力にログが記録されているか確認
+    echo "$output" | grep -q "notification-handler"
 }
 
 # 【6. ログファイル引数のテスト】

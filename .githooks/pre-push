@@ -37,8 +37,12 @@ fi
 # Run ShellCheck if available
 if command -v shellcheck &> /dev/null; then
     echo "🔧 Running ShellCheck..."
-    find . -name "*.sh" -type f ! -path "./.git/*" ! -path "./test/*" -exec shellcheck {} \;
-    echo "✅ ShellCheck passed"
+    if find . -name "*.sh" -type f ! -path "./.git/*" ! -path "./test/*" -exec shellcheck {} +; then
+        echo "✅ ShellCheck passed"
+    else
+        echo "❌ ShellCheck found issues"
+        exit 1
+    fi
 else
     echo "⚠️  shellcheck not found, skipping shell script validation"
     echo "   Install with: brew install shellcheck"

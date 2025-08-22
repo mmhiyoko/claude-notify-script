@@ -1,13 +1,23 @@
 #!/bin/bash
 
-# Claude Code Generic Notification Handler
-# 複数の通知システムに対応する汎用ハンドラー
+# Claude Code 通知ハンドラー
+# 
+# 使用方法:
+# 1. notifiersディレクトリに通知スクリプトを配置
+# 2. スクリプトに実行権限を付与: chmod +x notifiers/*.sh
+# 3. Claude Code settings.jsonで設定:
+#    echo '{"message":"test"}' | ./notification-handler.sh
+#
+# ログ出力オプション:
+#   --log /path/to/logfile    : ログファイルを指定
+#   -l /path/to/logfile       : ログファイルを指定（短縮形）
+#   --log=/path/to/logfile    : ログファイルを指定（=形式）
 
-# スクリプトのディレクトリを取得
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-NOTIFIERS_DIR="$SCRIPT_DIR/notifiers"
+set -euo pipefail
 
-# ログファイルの初期化
+# 設定
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+NOTIFIERS_DIR="${SCRIPT_DIR}/notifiers"
 LOG_FILE=""
 
 # 引数パース
@@ -21,34 +31,29 @@ while [[ $# -gt 0 ]]; do
             LOG_FILE="${1#*=}"
             shift
             ;;
-        -l*)
-            LOG_FILE="${1#-l}"
-            shift
-            ;;
         *)
-            echo "Unknown option: $1" >&2
-            echo "Usage: $0 [--log LOGFILE | -l LOGFILE]" >&2
-            exit 1
+            shift
             ;;
     esac
 done
 
-# ログ出力関数
 log_message() {
     local message="$1"
-    local timestamp="[$(date '+%Y-%m-%d %H:%M:%S')]"
+    local timestamp
+    timestamp="[$(date '+%Y-%m-%d %H:%M:%S')]"
     
     # 引数で指定されたログファイルに出力
     if [[ -n "$LOG_FILE" ]]; then
         # ディレクトリが存在しない場合は作成
-        local log_dir=$(dirname "$LOG_FILE")
+        local log_dir
+        log_dir=$(dirname "$LOG_FILE")
         [[ ! -d "$log_dir" ]] && mkdir -p "$log_dir"
         echo "$timestamp $message" >> "$LOG_FILE"
     fi
     
-    # DEBUG_MODE（後方互換性のため維持）
-    if [[ "$DEBUG_MODE" == "true" ]]; then
-        echo "$timestamp $message" >> "/tmp/claude-notification-debug.log"
+    # デバッグモードの場合は標準エラー出力にも出力
+    if [[ "${DEBUG_MODE:-false}" == "true" ]]; then
+        echo "$timestamp $message" >&2
     fi
 }
 
@@ -81,9 +86,13 @@ if [[ ! -d "$NOTIFIERS_DIR" ]]; then
     exit 0
 fi
 
-# 通知スクリプトを検索して実行
+# 実行可能な通知スクリプトを処理
 notifier_count=0
 failed_count=0
+
+# 失敗を記録するための一時ファイル
+fail_file=$(mktemp)
+trap 'rm -f '"$fail_file"'' EXIT
 
 for notifier in "$NOTIFIERS_DIR"/*.sh; do
     # ファイルが存在しない場合はスキップ
@@ -106,7 +115,7 @@ for notifier in "$NOTIFIERS_DIR"/*.sh; do
         if [[ $exit_code -eq 0 ]]; then
             log_message "成功: $notifier_name"
         else
-            ((failed_count++))
+            echo "1" >> "$fail_file"
             log_message "失敗: $notifier_name (exit: $exit_code)"
         fi
     } &
@@ -114,6 +123,11 @@ done
 
 # すべての通知プロセスの完了を待つ
 wait
+
+# 失敗カウントを集計
+if [[ -f "$fail_file" ]]; then
+    failed_count=$(wc -l < "$fail_file")
+fi
 
 # 結果をログ
 log_message "通知完了: $notifier_count 個実行, $failed_count 個失敗"

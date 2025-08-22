@@ -47,7 +47,7 @@ else
 fi
 
 # エスケープ処理（osascript用）
-message=$(echo "$message" | sed 's/"/\\"/g')
+message="${message//\"/\\\"}"
 
 # osascriptコマンドを構築
 script="display notification \"$message\" with title \"$NOTIFICATION_TITLE\""
