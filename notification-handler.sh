@@ -87,12 +87,8 @@ if [[ ! -d "$NOTIFIERS_DIR" ]]; then
 fi
 
 # 実行可能な通知スクリプトを処理
-notifier_count=0
-failed_count=0
-
-# 失敗を記録するための一時ファイル
-fail_file=$(mktemp)
-trap 'rm -f '"$fail_file"'' EXIT
+any_executed=false
+any_succeeded=false
 
 for notifier in "$NOTIFIERS_DIR"/*.sh; do
     # ファイルが存在しない場合はスキップ
@@ -105,35 +101,35 @@ for notifier in "$NOTIFIERS_DIR"/*.sh; do
     fi
     
     notifier_name=$(basename "$notifier")
-    ((notifier_count++))
+    any_executed=true
     
-    # 各通知スクリプトにJSONを渡して実行（バックグラウンドで並列実行）
-    {
-        echo "$input" | "$notifier" 2>&1
-        exit_code=$?
-        
-        if [[ $exit_code -eq 0 ]]; then
-            log_message "成功: $notifier_name"
-        else
-            echo "1" >> "$fail_file"
-            log_message "失敗: $notifier_name (exit: $exit_code)"
-        fi
-    } &
+    # 各通知スクリプトにJSONを渡して実行
+    set +e  # 一時的にエラーで止まらないようにする
+    echo "$input" | "$notifier" 2>&1
+    exit_code=$?
+    set -e  # 元に戻す
+    
+    if [[ $exit_code -eq 0 ]]; then
+        log_message "成功: $notifier_name"
+        any_succeeded=true
+    else
+        log_message "失敗: $notifier_name (exit: $exit_code)"
+    fi
 done
 
-# すべての通知プロセスの完了を待つ
-wait
-
-# 失敗カウントを集計
-if [[ -f "$fail_file" ]]; then
-    failed_count=$(wc -l < "$fail_file")
+# 結果をログ
+if [[ "$any_executed" == "true" ]]; then
+    if [[ "$any_succeeded" == "true" ]]; then
+        log_message "通知完了: 成功"
+    else
+        log_message "通知完了: 全て失敗"
+    fi
+else
+    log_message "通知完了: 実行可能な通知スクリプトなし"
 fi
 
-# 結果をログ
-log_message "通知完了: $notifier_count 個実行, $failed_count 個失敗"
-
 # 少なくとも1つの通知が成功していれば正常終了
-if [[ $notifier_count -gt 0 ]] && [[ $failed_count -lt $notifier_count ]]; then
+if [[ "$any_succeeded" == "true" ]]; then
     exit 0
 else
     exit 1
