@@ -1,5 +1,7 @@
 # Active notifiers (may contain sensitive data)
 notifiers/*.sh
+# But keep the directory itself
+!notifiers/.gitkeep
 
 # Temporary files
 *.tmp
