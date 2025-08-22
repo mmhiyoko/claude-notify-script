@@ -1,0 +1,66 @@
+name: Test
+
+on:
+  push:
+    branches: [ main, develop, "feature/*" ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Bats
+      run: |
+        sudo npm install -g bats
+      
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y jq curl
+        
+    - name: Run ShellCheck
+      uses: ludeeus/action-shellcheck@master
+      with:
+        scandir: '.'
+        ignore_paths: 'test'
+        
+    - name: Make scripts executable
+      run: |
+        chmod +x notification-handler.sh
+        chmod +x notifiers-examples/*.sh
+        
+    - name: Run Bats tests
+      run: |
+        export CLAUDE_TEST_MODE=true
+        bats test/notification-handler.bats
+        
+    - name: Test notification examples
+      run: |
+        export CLAUDE_TEST_MODE=true
+        for file in notification-examples/*.json; do
+          echo "Testing: $(basename "$file")"
+          cat "$file" | ./notification-handler.sh
+        done
+        
+  shellcheck:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Run ShellCheck on all scripts
+      run: |
+        find . -name "*.sh" -type f -print0 | xargs -0 shellcheck || true
+        
+    - name: Check script permissions
+      run: |
+        echo "Checking executable permissions..."
+        test -x notification-handler.sh || exit 1
+        echo "✓ notification-handler.sh is executable"

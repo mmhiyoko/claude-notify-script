@@ -1,0 +1,7 @@
+{
+    "session_id": "640549cd-a434-4dcd-a712-4d1ad2247014",
+    "transcript_path": "/home/user/.claude/projects/example-project/session.jsonl",
+    "cwd": "/home/user/projects/example-project",
+    "hook_event_name": "Notification",
+    "message": "Claude needs your permission to use Bash"
+}

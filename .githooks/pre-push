@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# Pre-push hook for claude-notify-script
+# Runs actionlint and tests before pushing
+
+set -e
+
+echo "🔍 Running pre-push checks..."
+
+# Check if actionlint is installed
+if command -v actionlint &> /dev/null; then
+    echo "📋 Checking GitHub Actions workflows..."
+    if ls .github/workflows/*.yml &> /dev/null 2>&1; then
+        actionlint .github/workflows/*.yml
+        echo "✅ GitHub Actions workflows are valid"
+    fi
+else
+    echo "⚠️  actionlint not found, skipping workflow validation"
+    echo "   Install with: brew install actionlint"
+fi
+
+# Check if bats is installed and run tests
+if command -v bats &> /dev/null; then
+    echo "🧪 Running tests..."
+    export CLAUDE_TEST_MODE=true
+    
+    # Run bats tests
+    if ls test/*.bats &> /dev/null 2>&1; then
+        bats test/*.bats
+        echo "✅ All tests passed"
+    fi
+else
+    echo "⚠️  bats not found, skipping tests"
+    echo "   Install with: brew install bats-core or npm install -g bats"
+fi
+
+# Run ShellCheck if available
+if command -v shellcheck &> /dev/null; then
+    echo "🔧 Running ShellCheck..."
+    if find . -name "*.sh" -type f ! -path "./.git/*" ! -path "./test/*" -exec shellcheck {} +; then
+        echo "✅ ShellCheck passed"
+    else
+        echo "❌ ShellCheck found issues"
+        exit 1
+    fi
+else
+    echo "⚠️  shellcheck not found, skipping shell script validation"
+    echo "   Install with: brew install shellcheck"
+fi
+
+echo "✨ All pre-push checks passed!"

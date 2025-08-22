@@ -1,0 +1,32 @@
+# Active notifiers (may contain sensitive data)
+notifiers/*.sh
+# But keep the directory itself
+!notifiers/.gitkeep
+
+# Temporary files
+*.tmp
+*.swp
+*~
+
+# Logs
+*.log
+/tmp/
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Backup files
+*.bak
+*.backup
+
+# Environment files
+.env
+.env.local
+
+# Claude Code configuration
+CLAUDE.local.md
+.claude/
