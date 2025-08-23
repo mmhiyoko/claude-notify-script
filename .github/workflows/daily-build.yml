@@ -20,13 +20,13 @@ jobs:
         with:
           payload: |
             {
-              "text": "Daily Build ${{ needs.call-test.result == 'success' && '✅' || '❌' }} ${{ needs.call-test.result }}",
+              "text": "Daily Build: ${{ needs.call-test.result }}",
               "blocks": [
                 {
                   "type": "header",
                   "text": {
                     "type": "plain_text",
-                    "text": "${{ needs.call-test.result == 'success' && '✅ Daily Build Passed' || '❌ Daily Build Failed' }}",
+                    "text": "Daily Build Report",
                     "emoji": true
                   }
                 },
@@ -35,7 +35,7 @@ jobs:
                   "fields": [
                     {
                       "type": "mrkdwn",
-                      "text": "*Status:*\n`${{ needs.call-test.result }}`"
+                      "text": "*Status:*\n${{ needs.call-test.result == 'success' && ':white_check_mark: Success' || needs.call-test.result == 'failure' && ':x: Failed' || ':warning: Cancelled' }}"
                     },
                     {
                       "type": "mrkdwn",
@@ -47,7 +47,7 @@ jobs:
                     },
                     {
                       "type": "mrkdwn",
-                      "text": "*Triggered by:*\n${{ github.event_name == 'schedule' && '⏰ Scheduled' || '👤 Manual' }}"
+                      "text": "*Triggered by:*\n${{ github.event_name == 'schedule' && ':alarm_clock: Scheduled' || ':bust_in_silhouette: Manual' }}"
                     }
                   ]
                 },
