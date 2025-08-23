@@ -31,9 +31,14 @@ jobs:
         scandir: '.'
         ignore_paths: 'test'
         
-    - name: Make scripts executable
+    - name: Check script permissions
       run: |
-        chmod +x notification-handler.sh
+        echo "Checking executable permissions..."
+        test -x notification-handler.sh || exit 1
+        echo "✓ notification-handler.sh is executable"
+        
+    - name: Make example scripts executable
+      run: |
         chmod +x notifiers-examples/*.sh
         
     - name: Run Bats tests
@@ -49,19 +54,19 @@ jobs:
           cat "$file" | ./notification-handler.sh
         done
         
-  shellcheck:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Run ShellCheck on all scripts
-      run: |
-        find . -name "*.sh" -type f -print0 | xargs -0 shellcheck || true
+    - name: Send failure notification to Slack
+      if: failure() && github.event_name != 'pull_request'
+      uses: act10ns/slack@v2
+      continue-on-error: true
+      with:
+        webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+        status: 'failure'
+        channel: '#general'
+        message: |
+          🚨 Test Failed!
+          Repository: ${{ github.repository }}
+          Branch: ${{ github.ref_name }}
+          Commit: ${{ github.sha }}
+          Triggered by: ${{ github.actor }}
+          View Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         
-    - name: Check script permissions
-      run: |
-        echo "Checking executable permissions..."
-        test -x notification-handler.sh || exit 1
-        echo "✓ notification-handler.sh is executable"
