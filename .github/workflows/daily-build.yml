@@ -16,68 +16,14 @@ jobs:
     if: always()
     steps:
       - name: Send Slack notification
-        uses: slackapi/slack-github-action@v1.27.0
+        uses: act10ns/slack@v2
         with:
-          payload: |
-            {
-              "text": "Daily Build: ${{ needs.call-test.result }}",
-              "blocks": [
-                {
-                  "type": "header",
-                  "text": {
-                    "type": "plain_text",
-                    "text": "Daily Build Report",
-                    "emoji": true
-                  }
-                },
-                {
-                  "type": "section",
-                  "fields": [
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Status:*\n${{ needs.call-test.result == 'success' && ':white_check_mark: Success' || needs.call-test.result == 'failure' && ':x: Failed' || ':warning: Cancelled' }}"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Repository:*\n<${{ github.server_url }}/${{ github.repository }}|${{ github.repository }}>"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Branch:*\n`${{ github.ref_name }}`"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Triggered by:*\n${{ github.event_name == 'schedule' && ':alarm_clock: Scheduled' || ':bust_in_silhouette: Manual' }}"
-                    }
-                  ]
-                },
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "*Test Summary:*\n• ShellCheck validation\n• Bats unit tests (15 tests)\n• Notification examples validation"
-                  },
-                  "accessory": {
-                    "type": "button",
-                    "text": {
-                      "type": "plain_text",
-                      "text": "View Workflow Run",
-                      "emoji": true
-                    },
-                    "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
-                    "style": "${{ needs.call-test.result == 'success' && 'primary' || 'danger' }}"
-                  }
-                },
-                {
-                  "type": "context",
-                  "elements": [
-                    {
-                      "type": "mrkdwn",
-                      "text": "Run #${{ github.run_number }} • Commit: <${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|${GITHUB_SHA:0:7}>"
-                    }
-                  ]
-                }
-              ]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          status: ${{ needs.call-test.result }}
+          channel: '#general'
+          message: |
+            Daily Build: ${{ needs.call-test.result }}
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Triggered by: ${{ github.event_name == 'schedule' && 'Scheduled (17:30 JST)' || 'Manual' }}
+            View Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
