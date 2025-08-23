@@ -20,14 +20,62 @@ jobs:
         with:
           payload: |
             {
-              "text": "Daily Build ${{ needs.call-test.result }}",
+              "text": "Daily Build ${{ needs.call-test.result == 'success' && '✅' || '❌' }} ${{ needs.call-test.result }}",
               "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "${{ needs.call-test.result == 'success' && '✅ Daily Build Passed' || '❌ Daily Build Failed' }}",
+                    "emoji": true
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Status:*\n`${{ needs.call-test.result }}`"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Repository:*\n<${{ github.server_url }}/${{ github.repository }}|${{ github.repository }}>"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Branch:*\n`${{ github.ref_name }}`"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Triggered by:*\n${{ github.event_name == 'schedule' && '⏰ Scheduled' || '👤 Manual' }}"
+                    }
+                  ]
+                },
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Daily Build Result*\n• Status: `${{ needs.call-test.result }}`\n• Workflow: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Run>\n• Time: <!date^${{ github.event.head_commit.timestamp || github.run_number }}|{date_short_pretty} at {time}|${{ github.event.head_commit.timestamp || github.run_number }}>"
+                    "text": "*Test Summary:*\n• ShellCheck validation\n• Bats unit tests (15 tests)\n• Notification examples validation"
+                  },
+                  "accessory": {
+                    "type": "button",
+                    "text": {
+                      "type": "plain_text",
+                      "text": "View Workflow Run",
+                      "emoji": true
+                    },
+                    "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+                    "style": "${{ needs.call-test.result == 'success' && 'primary' || 'danger' }}"
                   }
+                },
+                {
+                  "type": "context",
+                  "elements": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "Run #${{ github.run_number }} • Commit: <${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|${GITHUB_SHA:0:7}>"
+                    }
+                  ]
                 }
               ]
             }
